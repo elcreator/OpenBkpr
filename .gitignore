@@ -1,0 +1,7 @@
+.env
+.idea
+*.xml
+*.json
+!composer.json
+!tests/assets/*.xml
+*.csv

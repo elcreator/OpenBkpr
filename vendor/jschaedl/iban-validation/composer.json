@@ -1,0 +1,35 @@
+{
+	"name" : "jschaedl/iban-validation",
+	"license" : "MIT",
+	"type" : "library",
+	"description" : "A small library for validating International BankAccount Numbers (IBANs).",
+	"keywords" : ["iban", "validation"],
+	"homepage" : "https://github.com/jschaedl/iban-validation",
+	"authors" : [{
+		"name" : "Jan Schaedlich",
+		"email" : "mail@janschaedlich.de",
+		"homepage" : "https://www.linkedin.com/in/janschaedlich"
+	}],
+	"autoload": {
+		"psr-4": { "Iban\\Validation\\": "src" }
+	},
+	"autoload-dev": {
+		"psr-4": { "Iban\\Validation\\Tests\\": "tests" }
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "2.x-dev"
+		}
+	},
+	"require" : {
+		"php" : "~8.0.0 || ~8.1.0 || ~8.2.0 || ~8.3.0 || ~8.4.0",
+		"ext-ctype": "*",
+		"symfony/options-resolver": "^5.4|^6|^7"
+	},
+	"suggest": {
+       		"ext-bcmath" : "This library makes use of bcmod function, so an installed bcmath extension is recommended."
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^9.5"
+	}
+}
