@@ -1,4 +1,8 @@
 <?php
+declare(strict_types=1);
+/**
+ * @author Artur Kyryliuk <mail@artur.work>
+ */
 
 namespace App\TargetFormat;
 
@@ -103,7 +107,7 @@ class Camt054_1_04 {
         $entry->appendChild($this->xmlDoc->createElement('NtryRef', $this->formatId($transaction->id)));
 
         // Amount
-        $amt = $this->xmlDoc->createElement('Amt', abs($transaction->amount));
+        $amt = $this->xmlDoc->createElement('Amt', (string)abs($transaction->amount));
         $amt->setAttribute('Ccy', 'USD');
         $entry->appendChild($amt);
 
@@ -158,7 +162,7 @@ class Camt054_1_04 {
         $refs->appendChild($this->xmlDoc->createElement('EndToEndId', $this->formatId($transaction->id)));
 
         // Amount Details
-        $amt = $this->xmlDoc->createElement('Amt', abs($transaction->amount));
+        $amt = $this->xmlDoc->createElement('Amt', (string)abs($transaction->amount));
         $amt->setAttribute('Ccy', 'USD');
         $txDtls->appendChild($amt);
 
