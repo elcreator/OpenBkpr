@@ -99,7 +99,7 @@ class Camt054_1_04 {
         $owner->appendChild($this->xmlDoc->createElement('Nm', $accountInfo->ownerName));
     }
 
-    private function addEntry($parent, Model\Transaction $transaction) {
+    private function addEntry($parent, Model\Mercury\Transaction $transaction) {
         $entry = $this->xmlDoc->createElement('Ntry');
         $parent->appendChild($entry);
 

@@ -43,7 +43,7 @@ class Mercury
         $page = 0;
         do {
             $transactionsPage = $this->getTransactionsPage($accountId, $fromDate, $toDate, $page++);
-            $result = array_merge($result, array_map(fn($transaction) => Model\Transaction::fromArray($transaction),
+            $result = array_merge($result, array_map(fn($transaction) => Model\Mercury\Transaction::fromArray($transaction),
                 $transactionsPage['transactions']));
         } while ($transactionsPage['total'] > 0);
         return $result;
