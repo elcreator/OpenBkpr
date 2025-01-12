@@ -12,6 +12,8 @@ readonly class BalanceTransaction
     public function __construct(
         public string          $id,
         public int             $amount,
+        public \DateTimeImmutable $availableOn,
+        public \DateTimeImmutable $created,
         public string          $currency,
         public ?string         $description,
         public int             $fee,
@@ -27,6 +29,8 @@ readonly class BalanceTransaction
         return new self(
             id: $data['id'],
             amount: $data['amount'],
+            availableOn: new \DateTimeImmutable('@' . $data['available_on']),
+            created: new \DateTimeImmutable('@' . $data['created']),
             currency: $data['currency'],
             description: $data['description'] ?? null,
             fee: $data['fee'],
@@ -40,6 +44,7 @@ readonly class BalanceTransaction
 
     public function toTransaction(): Transaction
     {
-        return new \App\Model\Transaction($this->id, $this->amount / 100, '', '', '', '');
+        return new \App\Model\Transaction($this->id, $this->amount / 100, $this->availableOn, $this->created,
+            $this->source, $this->description);
     }
 }

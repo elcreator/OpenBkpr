@@ -13,6 +13,15 @@ class Cli
     private $defaultFromDate = '-2 months'; // to cover at least one full statement which usually covers previous month
     private $defaultToDate = 'now';
     private $defaultCurrency = 'USD';
+    private const ALL_FORMATS = [
+        'CAMT54' => TargetFormat\Camt054_1_04::class,
+        'CSV' => TargetFormat\Csv::class,
+        'JSON' => TargetFormat\Json::class,
+    ];
+    private const ALL_SOURCES = [
+        DataSource\Mercury::CONFIG_NAME,
+        DataSource\Stripe::CONFIG_NAME
+    ];
 
     public function __construct()
     {
@@ -31,54 +40,44 @@ class Cli
             if (!isset($_ENV['SOURCES'])) {
                 echo "SOURCES is not defined in .env, please setup\n";
             }
-
-            $allFormats = [
-                'CAMT54' => TargetFormat\Camt054_1_04::class
-            ];
-            if (!isset($_ENV['OUTPUT_FORMAT']) || !array_key_exists($_ENV['OUTPUT_FORMAT'], $allFormats)) {
-                throw new \UnderflowException("OUTPUT_FORMAT is not defined in .env, setup one of these:\n"
-                    . implode("\n", array_map(fn($item) => "OUTPUT_FORMAT={$item}", array_keys($allFormats)))
-                );
-            }
-            $format = $_ENV['OUTPUT_FORMAT'];
-
-            $allSources = [DataSource\Mercury::CONFIG_NAME, DataSource\Stripe::CONFIG_NAME];
-            if (!isset($_ENV['SOURCES'])) {
-                throw new \UnderflowException("SOURCES is not defined in .env, setup any of these comma-separated:\n"
-                    . implode(",", $allSources)
-                );
-            }
-            $sources = explode(',', $_ENV['SOURCES']);
+            $formats = $this->getConfigArray('OUTPUT_FORMATS', array_keys(self::ALL_FORMATS));
+            array_walk($formats, fn(&$value) => strtoupper($value));
+            $sources = $this->getConfigArray('SOURCES', self::ALL_SOURCES);
 
             foreach ($sources as $source) {
-                if (!in_array($source, $allSources)) {
+                if (!in_array($source, self::ALL_SOURCES)) {
                     $this->outError("$source is not a valid source, skipping...");
                     continue;
                 }
                 $period = $this->getPeriod($source);
-                $xml = '';
-                /** @var TargetFormat\AbstractTargetFormat $generator */
-                $generator = new $allFormats[$format]();
+
                 if ($source === DataSource\Mercury::CONFIG_NAME) {
                     $accountInfo = $this->getMercuryAccountInfo();
                     $transactions = $this->getMercuryTransactions($period, $accountInfo);
-                    $xml = $generator->generateFromTransactions($transactions, $accountInfo, $period);
                 } else if ($source === DataSource\Stripe::CONFIG_NAME) {
-                    $accountId = $_ENV['STRIPE_ACCOUNT_ID'];
-                    $stripe = new DataSource\Stripe($_ENV['STRIPE_TOKEN']);
-                    $transactions = $stripe->getTransactions($accountId, $period);
-                    $xml = $generator->generateFromTransactions($transactions, new Model\AccountInfo($accountId,
+                    $accountInfo = new Model\AccountInfo(
+                        '',
                         $_ENV['STRIPE_ACCOUNT_NUMBER'] ?? '', $_ENV['COMPANY_NAME'] ?? '',
-                        $_ENV['STRIPE_CURRENCY'] ?? ''), $period);
-                }
-                if (!$xml) {
-                    $this->outError("Nothing was generated for $source!");
+                        $_ENV['STRIPE_CURRENCY'] ?? '');
+                    $transactions = $this->getStripeTransactions($period);
+                } else {
                     continue;
                 }
-                if (isset($_ENV['OUTPUT_FILE'])) {
-                    $this->outputToFile($xml, $this->outputFileName($period, $source, $format, $_ENV['OUTPUT_FILE']));
-                } else {
-                    echo $xml;
+
+                foreach ($formats as $format) {
+                    /** @var TargetFormat\AbstractTargetFormat $generator */
+                    $generator = new (self::ALL_FORMATS[$format])();
+                    $output = $generator->generateFromTransactions($transactions, $accountInfo, $period);
+                    if (!$output) {
+                        $this->outError("Nothing was generated for $source!");
+                        continue;
+                    }
+                    if (isset($_ENV['OUTPUT_FILENAME'])) {
+                        $this->outputToFile($output, $this->outputFileName($period, $source, $generator->getExtension(),
+                            $_ENV['OUTPUT_FILENAME']));
+                    } else {
+                        echo $output;
+                    }
                 }
             }
         } catch (\Exception $e) {
@@ -89,11 +88,7 @@ class Cli
 
     public function getMercuryTransactions($period, $accountInfo)
     {
-        $dataSource = new Mercury($_ENV['MERCURY_TOKEN']);
-
-        if (!isset($_ENV['MERCURY_TOKEN'])) {
-            throw new \UnderflowException("MERCURY_TOKEN is not defined in .env");
-        }
+        $dataSource = new Mercury($this->sourceToken(DataSource\Mercury::CONFIG_NAME));
 
         if (!isset($_ENV['MERCURY_ACCOUNT_ID']) || !isset($_ENV['MERCURY_ACCOUNT_NUMBER'])) {
             $accounts = $dataSource->listAccounts();
@@ -106,10 +101,22 @@ class Cli
                 }
                 echo "\n";
             }
-            throw new \UnderflowException("MERCURY_ACCOUNT_ID or MERCURY_ACCOUNT_NUMBER is not found, please setup one of details above to the .env");
+            throw new \UnderflowException("MERCURY_ACCOUNT_ID or MERCURY_ACCOUNT_NUMBER is not found, "
+                . "please setup one of details above to the .env");
         }
 
         return $dataSource->getTransactions($period->fromDate, $period->toDate, $accountInfo->accountId);
+    }
+
+    public function getStripeTransactions($period)
+    {
+        $stripe = new DataSource\Stripe($this->sourceToken(DataSource\Stripe::CONFIG_NAME));
+
+        if (!isset($_ENV['STRIPE_ACCOUNT_NUMBER'])) {
+            throw new \UnderflowException("STRIPE_ACCOUNT_NUMBER is not found, please setup one of details above to the .env");
+        }
+
+        return $stripe->getTransactions($period);
     }
 
     private function getPeriod($source)
@@ -119,6 +126,35 @@ class Cli
             new \DateTimeImmutable($_ENV[$sourcePrefix . 'FROM_DATE'] ?? $_ENV['FROM_DATE'] ?? $this->defaultFromDate),
             new \DateTimeImmutable($_ENV[$sourcePrefix . 'TO_DATE'] ?? $_ENV['TO_DATE'] ?? $this->defaultToDate),
         );
+    }
+
+    private function getConfigArray(string $envKey, array $allValues): array
+    {
+        if (!isset($_ENV[$envKey])) {
+            $allString = implode(",", $allValues);
+            throw new \UnderflowException(
+                "$envKey is not defined in .env, set it to any of these comma-separated values:\n$allString");
+        }
+        $choices = explode(',', $_ENV[$envKey]);
+        array_walk($choices, fn(&$value) => trim($value));
+        $result = [];
+        foreach ($choices as $choice) {
+            if (!in_array($choice, $allValues)) {
+                $this->outError("$choice is not a valid choice for $envKey, skipping...");
+                continue;
+            }
+            $result[] = $choice;
+        }
+        return $result;
+    }
+
+    private function sourceToken($source)
+    {
+        $key = strtoupper($source) . '_TOKEN';
+        if (!isset($_ENV[$key])) {
+            throw new \UnderflowException("$key is not defined in .env");
+        }
+        return $_ENV[$key];
     }
 
     private function getMercuryAccountInfo()
@@ -131,11 +167,12 @@ class Cli
         );
     }
 
-    private function outputFileName(Model\Period $period, $source, $format, $template)
+    private function outputFileName(Model\Period $period, $source, $extension, $template)
     {
         return str_replace(
-            ['{source}', '{period}', '{format}'],
-            [$source, $period->fromDate->format('Y-m-d') . '-' . $period->toDate->format('Y-m-d'), $format],
+            ['{source}', '{period}', '{extension}'],
+            [$source, $period->fromDate->format('Y-m-d') . '-' . $period->toDate->format('Y-m-d'),
+                $extension],
             $template
         );
     }

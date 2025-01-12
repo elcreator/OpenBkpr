@@ -27,13 +27,25 @@ class Stripe
         $this->client = $client;
     }
 
+    public function listAccounts()
+    {
+        $response = $this->client->get(self::API_BASE_URL . 'financial_connections/accounts', $this->requestOptions);
+        if ($response->getStatusCode() !== 200) {
+            throw new \LogicException($response->getReasonPhrase());
+        }
+        $result = json_decode($response->getBody()->getContents());
+        if (!is_array($result?->data)) {
+            throw new \LogicException('Invalid response, missing accounts');
+        }
+        return $result->data;
+    }
+
     /**
-     * @param string $accountId
      * @param Model\Period $period
      * @return \App\Model\Transaction[]
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getTransactions(string $accountId, Model\Period $period)
+    public function getTransactions(Model\Period $period)
     {
         $result = [];
         $page = 0;

@@ -10,6 +10,7 @@ use App\Model;
 
 class Camt054_1_04 extends AbstractTargetFormat {
     const DT_FORMAT = 'Y-m-d\TH:i:s';
+    private $extension = 'camt054.xml';
     private $xmlDoc;
     private $namespace = 'urn:iso:std:iso:20022:tech:xsd:camt.054.001.04';
 
@@ -39,6 +40,10 @@ class Camt054_1_04 extends AbstractTargetFormat {
         return $this->xmlDoc->saveXML();
     }
 
+    public function getExtension(): string
+    {
+        return $this->extension;
+    }
 
     private function addGroupHeader($parent) {
         $grpHdr = $this->xmlDoc->createElement('GrpHdr');
@@ -135,12 +140,14 @@ class Camt054_1_04 extends AbstractTargetFormat {
         // Booking Date
         $bookgDt = $this->xmlDoc->createElement('BookgDt');
         $entry->appendChild($bookgDt);
-        $bookgDt->appendChild($this->xmlDoc->createElement('Dt', substr($transaction->postedAt, 0, 10)));
+        $bookgDt->appendChild($this->xmlDoc->createElement('Dt', substr(
+            $transaction->postedAt->format(self::DT_FORMAT), 0, 10)));
 
         // Value Date
         $valDt = $this->xmlDoc->createElement('ValDt');
         $entry->appendChild($valDt);
-        $valDt->appendChild($this->xmlDoc->createElement('Dt', substr($transaction->createdAt, 0, 10)));
+        $valDt->appendChild($this->xmlDoc->createElement('Dt', substr(
+            $transaction->createdAt->format(self::DT_FORMAT), 0, 10)));
 
         // Bank Transaction Code
         $this->addBankTransactionCode($entry);

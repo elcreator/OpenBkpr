@@ -4,5 +4,6 @@ namespace App\TargetFormat;
 
 abstract class AbstractTargetFormat
 {
-    public function generateFromTransactions($transactions, $accountInfo, $period) {}
+    abstract public function getExtension(): string;
+    abstract public function generateFromTransactions($transactions, $accountInfo, $period);
 }
