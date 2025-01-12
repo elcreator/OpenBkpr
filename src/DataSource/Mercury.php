@@ -9,6 +9,7 @@ use App\Model;
 
 class Mercury
 {
+    public const CONFIG_NAME = 'Mercury';
     private int $pageSize = 500;
     private array $requestOptions = [
         'headers' => [
@@ -26,7 +27,7 @@ class Mercury
 
     public function listAccounts()
     {
-        $response = $this->client->get(self::API_BASE_URL . "accounts", $this->requestOptions);
+        $response = $this->client->get(self::API_BASE_URL . 'accounts', $this->requestOptions);
         if ($response->getStatusCode() !== 200) {
             throw new \LogicException($response->getReasonPhrase());
         }
@@ -37,19 +38,26 @@ class Mercury
         return $result->accounts;
     }
 
-    public function getTransactions(string $accountId, \DateTimeImmutable $fromDate, \DateTimeImmutable $toDate)
+    /**
+     * @param \DateTimeImmutable $fromDate
+     * @param \DateTimeImmutable $toDate
+     * @param string $accountId
+     * @return \App\Model\Transaction[]
+     */
+    public function getTransactions(\DateTimeImmutable $fromDate, \DateTimeImmutable $toDate, string $accountId)
     {
         $result = [];
         $page = 0;
         do {
-            $transactionsPage = $this->getTransactionsPage($accountId, $fromDate, $toDate, $page++);
-            $result = array_merge($result, array_map(fn($transaction) => Model\Mercury\Transaction::fromArray($transaction),
+            $transactionsPage = $this->getTransactionsPage($fromDate, $toDate, $accountId, $page++);
+            $result = array_merge($result, array_map(fn($transaction) => Model\Mercury\Transaction::fromArray(
+                $transaction)->toTransaction(),
                 $transactionsPage['transactions']));
         } while ($transactionsPage['total'] > 0);
         return $result;
     }
 
-    public function getTransactionsPage(string $accountId, \DateTimeImmutable $fromDate, \DateTimeImmutable $toDate, int $page) {
+    private function getTransactionsPage(\DateTimeImmutable $fromDate, \DateTimeImmutable $toDate, string $accountId, int $page) {
         $offset = $page * $this->pageSize;
         $response = $this->client->get(self::API_BASE_URL . "account/{$accountId}/transactions?limit={$this->pageSize}"
             . "&offset={$offset}&start={$fromDate->format('Y-m-d')}&end={$toDate->format('Y-m-d')}",

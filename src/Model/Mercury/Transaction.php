@@ -96,4 +96,9 @@ readonly class Transaction
             relatedTransactions: $relatedTransactions,
         );
     }
+
+    public function toTransaction(): \App\Model\Transaction
+    {
+        return new \App\Model\Transaction($this->id, $this->amount, $this->postedAt, $this->createdAt, $this->counterpartyName, $this->note);
+    }
 }

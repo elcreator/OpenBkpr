@@ -8,7 +8,7 @@ namespace App\TargetFormat;
 
 use App\Model;
 
-class Camt054_1_04 {
+class Camt054_1_04 extends AbstractTargetFormat {
     const DT_FORMAT = 'Y-m-d\TH:i:s';
     private $xmlDoc;
     private $namespace = 'urn:iso:std:iso:20022:tech:xsd:camt.054.001.04';
@@ -18,6 +18,13 @@ class Camt054_1_04 {
         $this->xmlDoc->formatOutput = true;
     }
 
+    /**
+     * @param Model\Transaction[] $transactions
+     * @param Model\AccountInfo $accountInfo
+     * @param Model\Period $period
+     * @return false|string
+     * @throws \DOMException
+     */
     public function generateFromTransactions($transactions, $accountInfo, $period) {
         $document = $this->xmlDoc->createElementNS($this->namespace, 'Document');
         $this->xmlDoc->appendChild($document);
@@ -50,7 +57,15 @@ class Camt054_1_04 {
         $msgPgntn->appendChild($this->xmlDoc->createElement('LastPgInd', 'true'));
     }
 
-    private function addNotification($parent, $transactions, Model\AccountInfo $accountInfo, Model\Period $period) {
+    /**
+     * @param \DOMNode $parent
+     * @param Model\Transaction[] $transactions
+     * @param Model\AccountInfo $accountInfo
+     * @param Model\Period $period
+     * @return void
+     * @throws \DOMException
+     */
+    private function addNotification($parent, array $transactions, Model\AccountInfo $accountInfo, Model\Period $period) {
         $notification = $this->xmlDoc->createElement('Ntfctn');
         $parent->appendChild($notification);
 
@@ -99,7 +114,7 @@ class Camt054_1_04 {
         $owner->appendChild($this->xmlDoc->createElement('Nm', $accountInfo->ownerName));
     }
 
-    private function addEntry($parent, Model\Mercury\Transaction $transaction) {
+    private function addEntry($parent, Model\Transaction $transaction) {
         $entry = $this->xmlDoc->createElement('Ntry');
         $parent->appendChild($entry);
 
