@@ -10,7 +10,9 @@ readonly class CardInfo
 {
     public function __construct(
         public string $id
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

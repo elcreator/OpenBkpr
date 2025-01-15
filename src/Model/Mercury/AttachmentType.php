@@ -5,6 +5,7 @@ declare(strict_types=1);
  */
 
 namespace App\Model\Mercury;
+
 enum AttachmentType: string
 {
     case CHECK_IMAGE = 'checkImage';

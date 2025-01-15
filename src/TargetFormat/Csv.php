@@ -8,10 +8,12 @@ namespace App\TargetFormat;
 
 use App\Model;
 
-class Csv extends AbstractTargetFormat {
+class Csv extends AbstractTargetFormat
+{
     private $extension = 'csv';
 
-    public function __construct() {
+    public function __construct()
+    {
     }
 
     /**
@@ -20,7 +22,8 @@ class Csv extends AbstractTargetFormat {
      * @param Model\Period $period
      * @return false|string
      */
-    public function generateFromTransactions($transactions, $accountInfo, $period) {
+    public function generateFromTransactions($transactions, $accountInfo, $period)
+    {
         // Open a temporary memory stream for writing CSV data
         $handle = fopen('php://temp', 'r+');
         if ($handle === false) {

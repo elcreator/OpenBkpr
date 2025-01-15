@@ -12,6 +12,7 @@ readonly class Attachment
         public string $fileName,
         public string $url,
         public AttachmentType $attachmentType
-    ) {}
+    ) {
+    }
 }
 

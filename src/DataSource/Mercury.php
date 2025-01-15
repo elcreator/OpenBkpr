@@ -5,18 +5,19 @@ declare(strict_types=1);
  */
 
 namespace App\DataSource;
+
 use App\Model;
 
 class Mercury
 {
     public const CONFIG_NAME = 'Mercury';
+    const API_BASE_URL = 'https://api.mercury.com/api/v1/';
     private int $pageSize = 500;
     private array $requestOptions = [
         'headers' => [
             'accept' => 'application/json',
         ],
     ];
-    const API_BASE_URL = 'https://api.mercury.com/api/v1/';
     private \Psr\Http\Client\ClientInterface $client;
 
     public function __construct(string $token, $client = new \GuzzleHttp\Client())
@@ -50,18 +51,29 @@ class Mercury
         $page = 0;
         do {
             $transactionsPage = $this->getTransactionsPage($fromDate, $toDate, $accountId, $page++);
-            $result = array_merge($result, array_map(fn($transaction) => Model\Mercury\Transaction::fromArray(
-                $transaction)->toTransaction(),
-                $transactionsPage['transactions']));
+            $result = array_merge(
+                $result,
+                array_map(fn($transaction) => Model\Mercury\Transaction::fromArray(
+                    $transaction
+                )->toTransaction(),
+                    $transactionsPage['transactions'])
+            );
         } while ($transactionsPage['total'] > 0);
         return $result;
     }
 
-    private function getTransactionsPage(\DateTimeImmutable $fromDate, \DateTimeImmutable $toDate, string $accountId, int $page) {
+    private function getTransactionsPage(
+        \DateTimeImmutable $fromDate,
+        \DateTimeImmutable $toDate,
+        string $accountId,
+        int $page
+    ) {
         $offset = $page * $this->pageSize;
-        $response = $this->client->get(self::API_BASE_URL . "account/{$accountId}/transactions?limit={$this->pageSize}"
+        $response = $this->client->get(
+            self::API_BASE_URL . "account/{$accountId}/transactions?limit={$this->pageSize}"
             . "&offset={$offset}&start={$fromDate->format('Y-m-d')}&end={$toDate->format('Y-m-d')}",
-            $this->requestOptions);
+            $this->requestOptions
+        );
         if ($response->getStatusCode() !== 200) {
             throw new \LogicException($response->getReasonPhrase());
         }

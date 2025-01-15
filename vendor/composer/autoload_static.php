@@ -16,6 +16,14 @@ class ComposerStaticInitd04dd012703047519bac5773b08193be
     );
 
     public static $prefixLengthsPsr4 = array (
+        'p' => 
+        array (
+            'phpDocumentor\\Reflection\\' => 25,
+        ),
+        'W' => 
+        array (
+            'Webmozart\\Assert\\' => 17,
+        ),
         'S' => 
         array (
             'Symfony\\Polyfill\\Php80\\' => 23,
@@ -28,7 +36,9 @@ class ComposerStaticInitd04dd012703047519bac5773b08193be
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
+            'Psr\\Container\\' => 14,
             'PhpOption\\' => 10,
+            'PHPStan\\PhpDocParser\\' => 21,
         ),
         'M' => 
         array (
@@ -45,11 +55,13 @@ class ComposerStaticInitd04dd012703047519bac5773b08193be
             'GuzzleHttp\\' => 11,
             'GrahamCampbell\\ResultType\\' => 26,
             'Genkgo\\Camt\\' => 12,
+            'Garden\\Container\\' => 17,
             'Garden\\Cli\\' => 11,
         ),
         'D' => 
         array (
             'Dotenv\\' => 7,
+            'Doctrine\\Deprecations\\' => 22,
         ),
         'A' => 
         array (
@@ -59,6 +71,16 @@ class ComposerStaticInitd04dd012703047519bac5773b08193be
     );
 
     public static $prefixDirsPsr4 = array (
+        'phpDocumentor\\Reflection\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpdocumentor/reflection-common/src',
+            1 => __DIR__ . '/..' . '/phpdocumentor/type-resolver/src',
+            2 => __DIR__ . '/..' . '/phpdocumentor/reflection-docblock/src',
+        ),
+        'Webmozart\\Assert\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/webmozart/assert/src',
+        ),
         'Symfony\\Polyfill\\Php80\\' => 
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
@@ -88,9 +110,17 @@ class ComposerStaticInitd04dd012703047519bac5773b08193be
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
+        'Psr\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
         'PhpOption\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
+        ),
+        'PHPStan\\PhpDocParser\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpstan/phpdoc-parser/src',
         ),
         'Money\\' => 
         array (
@@ -120,6 +150,10 @@ class ComposerStaticInitd04dd012703047519bac5773b08193be
         array (
             0 => __DIR__ . '/..' . '/genkgo/camt/src',
         ),
+        'Garden\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/vanilla/garden-container/src',
+        ),
         'Garden\\Cli\\' => 
         array (
             0 => __DIR__ . '/..' . '/vanilla/garden-cli/src',
@@ -127,6 +161,10 @@ class ComposerStaticInitd04dd012703047519bac5773b08193be
         'Dotenv\\' => 
         array (
             0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
+        ),
+        'Doctrine\\Deprecations\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/doctrine/deprecations/src',
         ),
         'App\\Tests\\' => 
         array (

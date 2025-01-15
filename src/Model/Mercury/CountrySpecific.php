@@ -15,7 +15,9 @@ readonly class CountrySpecific
         public ?CountrySpecific\Philippines $countrySpecificDataPhilippines,
         public ?CountrySpecific\Russia $countrySpecificDataRussia,
         public ?CountrySpecific\SouthAfrica $countrySpecificDataSouthAfrica
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

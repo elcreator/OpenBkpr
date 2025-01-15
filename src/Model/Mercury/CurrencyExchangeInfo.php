@@ -17,7 +17,9 @@ readonly class CurrencyExchangeInfo
         public float $feePercentage,
         public float $exchangeRate,
         public string $feeTransactionId
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

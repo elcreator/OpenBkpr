@@ -16,7 +16,9 @@ readonly class Address
         public string $postalCode,
         public ?string $region = null,
         public ?string $country = null
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

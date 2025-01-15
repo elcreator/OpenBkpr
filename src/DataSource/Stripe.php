@@ -5,11 +5,13 @@ declare(strict_types=1);
  */
 
 namespace App\DataSource;
+
 use App\Model;
 
 class Stripe
 {
     public const CONFIG_NAME = 'Stripe';
+    const API_BASE_URL = 'https://api.stripe.com/v1/';
     private int $pageSize = 5;
     private ?string $lastId = null;
     private array $requestOptions = [
@@ -17,8 +19,6 @@ class Stripe
             'accept' => 'application/json',
         ],
     ];
-    const API_BASE_URL = 'https://api.stripe.com/v1/';
-
     private \Psr\Http\Client\ClientInterface $client;
 
     public function __construct(string $token, $client = new \GuzzleHttp\Client())
@@ -48,26 +48,31 @@ class Stripe
     public function getTransactions(Model\Period $period)
     {
         $result = [];
-        $page = 0;
         do {
-            $transactionsPage = $this->getTransactionsPage($page++);
-            $result = array_merge($result, array_map(fn($transaction) => Model\Stripe\BalanceTransaction::fromArray(
-                $transaction)->toTransaction(),
-                $transactionsPage['data']));
+            $transactionsPage = $this->getTransactionsPage();
+            $result = array_merge(
+                $result,
+                array_map(fn($transaction) => Model\Stripe\BalanceTransaction::fromArray(
+                    $transaction
+                )->toTransaction(),
+                    $transactionsPage['data'])
+            );
         } while ($transactionsPage['has_more'] === true);
         return $result;
     }
 
     /**
      * https://docs.stripe.com/api/balance_transactions/list
-     * @param int $page
      * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    private function getTransactionsPage(int $page) {
-        $response = $this->client->get(self::API_BASE_URL . "balance_transactions?limit={$this->pageSize}"
+    private function getTransactionsPage()
+    {
+        $response = $this->client->get(
+            self::API_BASE_URL . "balance_transactions?limit={$this->pageSize}"
             . (is_null($this->lastId) ? '' : "&starting_after={$this->lastId}"),
-            $this->requestOptions);
+            $this->requestOptions
+        );
         if ($response->getStatusCode() !== 200) {
             throw new \LogicException($response->getReasonPhrase());
         }

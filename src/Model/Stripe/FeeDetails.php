@@ -14,7 +14,8 @@ readonly class FeeDetails
         public string $currency,
         public ?string $description,
         public FeeDetailsType $type
-    ) {}
+    ) {
+    }
 
     public static function fromArray(array $data): self
     {

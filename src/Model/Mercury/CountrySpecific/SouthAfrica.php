@@ -10,7 +10,9 @@ readonly class SouthAfrica
 {
     public function __construct(
         public string $branchCode
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

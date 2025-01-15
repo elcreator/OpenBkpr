@@ -9,36 +9,35 @@ namespace App\Model\Mercury;
 readonly class Transaction
 {
     public function __construct(
-        public float               $amount,
-        public ?string             $bankDescription,
-        public string              $counterpartyId,
-        public string              $counterpartyName,
-        public ?string             $counterpartyNickname,
-        public \DateTimeImmutable  $createdAt,
-        public string              $dashboardLink,
+        public float $amount,
+        public ?string $bankDescription,
+        public string $counterpartyId,
+        public string $counterpartyName,
+        public ?string $counterpartyNickname,
+        public \DateTimeImmutable $createdAt,
+        public string $dashboardLink,
         public ?TransactionDetails $details,
-        public string              $estimatedDeliveryDate,
+        public string $estimatedDeliveryDate,
         public ?\DateTimeImmutable $failedAt,
-        public string              $id,
-        public TransactionKind     $kind,
-        public ?string             $note,
-        public ?string             $externalMemo,
-        public \DateTimeImmutable  $postedAt,
-        public ?string             $reasonForFailure,
-        public TransactionStatus   $status,
-        public ?string             $feeId,
-        public ?object  $currencyExchangeInfo,
-        public bool     $compliantWithReceiptPolicy,
-        public bool     $hasGeneratedReceipt,
-        public ?string  $creditAccountPeriodId,
-        public ?string  $mercuryCategory,
-        public ?string  $generalLedgerCodeName,
+        public string $id,
+        public TransactionKind $kind,
+        public ?string $note,
+        public ?string $externalMemo,
+        public \DateTimeImmutable $postedAt,
+        public ?string $reasonForFailure,
+        public TransactionStatus $status,
+        public ?string $feeId,
+        public ?object $currencyExchangeInfo,
+        public bool $compliantWithReceiptPolicy,
+        public bool $hasGeneratedReceipt,
+        public ?string $creditAccountPeriodId,
+        public ?string $mercuryCategory,
+        public ?string $generalLedgerCodeName,
         /** @var Attachment[] */
-        public array    $attachments,
+        public array $attachments,
         /** @var RelatedTransaction[] */
-        public array    $relatedTransactions,
-    )
-    {
+        public array $relatedTransactions,
+    ) {
     }
 
     /**
@@ -86,7 +85,8 @@ readonly class Transaction
             status: TransactionStatus::from($data['status']),
             feeId: $data['feeId'],
             currencyExchangeInfo: $data['currencyExchangeInfo'] ? CurrencyExchangeInfo::fromArray(
-                $data['currencyExchangeInfo']) : null,
+                $data['currencyExchangeInfo']
+            ) : null,
             compliantWithReceiptPolicy: $data['compliantWithReceiptPolicy'],
             hasGeneratedReceipt: $data['hasGeneratedReceipt'],
             creditAccountPeriodId: $data['creditAccountPeriodId'],
@@ -99,6 +99,13 @@ readonly class Transaction
 
     public function toTransaction(): \App\Model\Transaction
     {
-        return new \App\Model\Transaction($this->id, $this->amount, $this->postedAt, $this->createdAt, $this->counterpartyName, $this->note);
+        return new \App\Model\Transaction(
+            $this->id,
+            $this->amount,
+            $this->postedAt,
+            $this->createdAt,
+            $this->counterpartyName,
+            $this->note
+        );
     }
 }

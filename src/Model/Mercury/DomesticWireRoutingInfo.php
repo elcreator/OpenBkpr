@@ -13,7 +13,9 @@ readonly class DomesticWireRoutingInfo
         public string $accountNumber,
         public string $routingNumber,
         public ?Address $address
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

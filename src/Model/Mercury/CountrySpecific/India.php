@@ -10,7 +10,9 @@ readonly class India
 {
     public function __construct(
         public string $ifscCode
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

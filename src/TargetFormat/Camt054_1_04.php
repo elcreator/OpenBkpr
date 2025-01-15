@@ -8,13 +8,15 @@ namespace App\TargetFormat;
 
 use App\Model;
 
-class Camt054_1_04 extends AbstractTargetFormat {
+class Camt054_1_04 extends AbstractTargetFormat
+{
     const DT_FORMAT = 'Y-m-d\TH:i:s';
     private $extension = 'camt054.xml';
     private $xmlDoc;
     private $namespace = 'urn:iso:std:iso:20022:tech:xsd:camt.054.001.04';
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->xmlDoc = new \DOMDocument('1.0', 'UTF-8');
         $this->xmlDoc->formatOutput = true;
     }
@@ -26,7 +28,8 @@ class Camt054_1_04 extends AbstractTargetFormat {
      * @return false|string
      * @throws \DOMException
      */
-    public function generateFromTransactions($transactions, $accountInfo, $period) {
+    public function generateFromTransactions($transactions, $accountInfo, $period)
+    {
         $document = $this->xmlDoc->createElementNS($this->namespace, 'Document');
         $this->xmlDoc->appendChild($document);
 
@@ -40,18 +43,14 @@ class Camt054_1_04 extends AbstractTargetFormat {
         return $this->xmlDoc->saveXML();
     }
 
-    public function getExtension(): string
+    private function addGroupHeader($parent)
     {
-        return $this->extension;
-    }
-
-    private function addGroupHeader($parent) {
         $grpHdr = $this->xmlDoc->createElement('GrpHdr');
         $parent->appendChild($grpHdr);
 
         // Message ID - using timestamp and random number
         $grpHdr->appendChild($this->xmlDoc->createElement('MsgId', date('Ymd') . sprintf('%06d', rand(0, 999999))));
-        
+
         // Creation Date Time
         $grpHdr->appendChild($this->createDateTimeNode('CreDtTm'));
 
@@ -62,6 +61,14 @@ class Camt054_1_04 extends AbstractTargetFormat {
         $msgPgntn->appendChild($this->xmlDoc->createElement('LastPgInd', 'true'));
     }
 
+    private function createDateTimeNode($name, $dateTime = null)
+    {
+        if (is_null($dateTime)) {
+            $dateTime = new \DateTimeImmutable();
+        }
+        return $this->xmlDoc->createElement($name, $dateTime->format(self::DT_FORMAT));
+    }
+
     /**
      * @param \DOMNode $parent
      * @param Model\Transaction[] $transactions
@@ -70,7 +77,8 @@ class Camt054_1_04 extends AbstractTargetFormat {
      * @return void
      * @throws \DOMException
      */
-    private function addNotification($parent, array $transactions, Model\AccountInfo $accountInfo, Model\Period $period) {
+    private function addNotification($parent, array $transactions, Model\AccountInfo $accountInfo, Model\Period $period)
+    {
         $notification = $this->xmlDoc->createElement('Ntfctn');
         $parent->appendChild($notification);
 
@@ -94,13 +102,14 @@ class Camt054_1_04 extends AbstractTargetFormat {
         }
     }
 
-    private function addAccountInformation($parent, Model\AccountInfo $accountInfo) {
+    private function addAccountInformation($parent, Model\AccountInfo $accountInfo)
+    {
         $acct = $this->xmlDoc->createElement('Acct');
         $parent->appendChild($acct);
 
         $id = $this->xmlDoc->createElement('Id');
         $acct->appendChild($id);
-        
+
         // Add IBAN or other format of account number
         if (is_numeric(substr($accountInfo->accountNumber, 0, 2))) {
             $otherId = $this->xmlDoc->createElement('Othr');
@@ -119,7 +128,8 @@ class Camt054_1_04 extends AbstractTargetFormat {
         $owner->appendChild($this->xmlDoc->createElement('Nm', $accountInfo->ownerName));
     }
 
-    private function addEntry($parent, Model\Transaction $transaction) {
+    private function addEntry($parent, Model\Transaction $transaction)
+    {
         $entry = $this->xmlDoc->createElement('Ntry');
         $parent->appendChild($entry);
 
@@ -140,14 +150,30 @@ class Camt054_1_04 extends AbstractTargetFormat {
         // Booking Date
         $bookgDt = $this->xmlDoc->createElement('BookgDt');
         $entry->appendChild($bookgDt);
-        $bookgDt->appendChild($this->xmlDoc->createElement('Dt', substr(
-            $transaction->postedAt->format(self::DT_FORMAT), 0, 10)));
+        $bookgDt->appendChild(
+            $this->xmlDoc->createElement(
+                'Dt',
+                substr(
+                    $transaction->postedAt->format(self::DT_FORMAT),
+                    0,
+                    10
+                )
+            )
+        );
 
         // Value Date
         $valDt = $this->xmlDoc->createElement('ValDt');
         $entry->appendChild($valDt);
-        $valDt->appendChild($this->xmlDoc->createElement('Dt', substr(
-            $transaction->createdAt->format(self::DT_FORMAT), 0, 10)));
+        $valDt->appendChild(
+            $this->xmlDoc->createElement(
+                'Dt',
+                substr(
+                    $transaction->createdAt->format(self::DT_FORMAT),
+                    0,
+                    10
+                )
+            )
+        );
 
         // Bank Transaction Code
         $this->addBankTransactionCode($entry);
@@ -156,7 +182,17 @@ class Camt054_1_04 extends AbstractTargetFormat {
         $this->addEntryDetails($entry, $transaction);
     }
 
-    private function addBankTransactionCode($parent) {
+    private static function formatId($id)
+    {
+        if (strlen($id) <= 35) {
+            return $id;
+        }
+        $alphanumeric = preg_replace('/[^a-zA-Z0-9]/', '', $id);
+        return strlen($alphanumeric) <= 35 ? $alphanumeric : md5($id);
+    }
+
+    private function addBankTransactionCode($parent)
+    {
         $bankTxCode = $this->xmlDoc->createElement('BkTxCd');
         $parent->appendChild($bankTxCode);
 
@@ -170,7 +206,8 @@ class Camt054_1_04 extends AbstractTargetFormat {
         $family->appendChild($this->xmlDoc->createElement('SubFmlyCd', 'VCOM'));
     }
 
-    private function addEntryDetails($parent, $transaction) {
+    private function addEntryDetails($parent, $transaction)
+    {
         $entryDtls = $this->xmlDoc->createElement('NtryDtls');
         $parent->appendChild($entryDtls);
 
@@ -202,7 +239,8 @@ class Camt054_1_04 extends AbstractTargetFormat {
         }
     }
 
-    private function addRelatedParties($parent, $transaction) {
+    private function addRelatedParties($parent, $transaction)
+    {
         $relatedParties = $this->xmlDoc->createElement('RltdPties');
         $parent->appendChild($relatedParties);
 
@@ -218,20 +256,8 @@ class Camt054_1_04 extends AbstractTargetFormat {
         }
     }
 
-    private static function formatId($id)
+    public function getExtension(): string
     {
-        if (strlen($id) <= 35) {
-            return $id;
-        }
-        $alphanumeric = preg_replace('/[^a-zA-Z0-9]/', '', $id);
-        return strlen($alphanumeric) <= 35 ? $alphanumeric : md5($id);
-    }
-
-    private function createDateTimeNode($name, $dateTime = null)
-    {
-        if (is_null($dateTime)) {
-            $dateTime = new \DateTimeImmutable();
-        }
-        return $this->xmlDoc->createElement($name, $dateTime->format(self::DT_FORMAT));
+        return $this->extension;
     }
 }

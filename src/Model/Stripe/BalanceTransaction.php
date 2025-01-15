@@ -10,19 +10,20 @@ readonly class BalanceTransaction
      * @param FeeDetails[] $feeDetails
      */
     public function __construct(
-        public string          $id,
-        public int             $amount,
+        public string $id,
+        public int $amount,
         public \DateTimeImmutable $availableOn,
         public \DateTimeImmutable $created,
-        public string          $currency,
-        public ?string         $description,
-        public int             $fee,
-        public array           $feeDetails,
-        public int             $net,
-        public ?string         $source,
-        public string          $status,
+        public string $currency,
+        public ?string $description,
+        public int $fee,
+        public array $feeDetails,
+        public int $net,
+        public ?string $source,
+        public string $status,
         public TransactionType $type
-    ) {}
+    ) {
+    }
 
     public static function fromArray(array $data): self
     {
@@ -44,7 +45,9 @@ readonly class BalanceTransaction
 
     public function toTransaction(): Transaction
     {
-        return new \App\Model\Transaction($this->id, $this->amount / 100, $this->availableOn, $this->created,
-            $this->source, $this->description);
+        return new \App\Model\Transaction(
+            $this->id, $this->amount / 100, $this->availableOn, $this->created,
+            $this->source, $this->description
+        );
     }
 }

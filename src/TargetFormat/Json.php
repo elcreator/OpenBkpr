@@ -8,10 +8,12 @@ namespace App\TargetFormat;
 
 use App\Model;
 
-class Json extends AbstractTargetFormat {
+class Json extends AbstractTargetFormat
+{
     private $extension = 'json';
 
-    public function __construct() {
+    public function __construct()
+    {
     }
 
     /**
@@ -20,7 +22,8 @@ class Json extends AbstractTargetFormat {
      * @param Model\Period $period
      * @return false|string
      */
-    public function generateFromTransactions($transactions, $accountInfo, $period) {
+    public function generateFromTransactions($transactions, $accountInfo, $period)
+    {
         return json_encode(['transactions' => $transactions, 'accountInfo' => $accountInfo, 'period' => $period]);
     }
 

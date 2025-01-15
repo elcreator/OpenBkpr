@@ -12,7 +12,9 @@ readonly class CorrespondentInfo
         public ?string $routingNumber,
         public ?string $swiftCode,
         public ?string $bankName
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

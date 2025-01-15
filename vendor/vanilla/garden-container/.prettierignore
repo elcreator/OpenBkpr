@@ -1,0 +1,13 @@
+# vendor files
+node_modules
+vendor
+*.lock
+package-lock.json
+
+# IDE Config
+.vscode
+.idea
+
+# Test output
+.phpunit.result.cache
+

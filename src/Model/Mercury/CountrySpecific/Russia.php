@@ -10,7 +10,9 @@ readonly class Russia
 {
     public function __construct(
         public string $inn
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

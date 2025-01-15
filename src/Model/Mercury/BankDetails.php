@@ -12,7 +12,9 @@ readonly class BankDetails
         public string $bankName,
         public ?string $cityState,
         public ?string $country
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

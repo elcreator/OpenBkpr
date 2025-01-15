@@ -15,18 +15,22 @@ readonly class TransactionDetails
         public ?InternationalWireRoutingInfo $internationalWireRoutingInfo,
         public ?CardInfo $debitCardInfo,
         public ?CardInfo $creditCardInfo
-    ) {}
+    ) {
+    }
 
     public static function fromArray(array $data): self
     {
         return new self(
             ($data['address'] ?? null) ? Address::fromArray($data['address']) : null,
             ($data['domesticWireRoutingInfo'] ?? null) ? DomesticWireRoutingInfo::fromArray(
-                $data['domesticWireRoutingInfo']) : null,
+                $data['domesticWireRoutingInfo']
+            ) : null,
             ($data['electronicRoutingInfo'] ?? null) ? ElectronicRoutingInfo::fromArray(
-                $data['electronicRoutingInfo']) : null,
+                $data['electronicRoutingInfo']
+            ) : null,
             ($data['internationalWireRoutingInfo'] ?? null) ? InternationalWireRoutingInfo::fromArray(
-                $data['internationalWireRoutingInfo']) : null,
+                $data['internationalWireRoutingInfo']
+            ) : null,
             ($data['debitCardInfo'] ?? null) ? CardInfo::fromArray($data['debitCardInfo']) : null,
             ($data['creditCardInfo'] ?? null) ? CardInfo::fromArray($data['creditCardInfo']) : null,
         );

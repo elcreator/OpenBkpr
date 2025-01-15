@@ -12,7 +12,7 @@ readonly class RelatedTransaction
         public string $id,
         public string $accountId,
         public string $relationKind,
-        public float  $amount,
+        public float $amount,
     ) {
     }
 }

@@ -13,5 +13,6 @@ readonly class AccountInfo
         public string $accountNumber,
         public string $ownerName,
         public string $currency,
-    ) {}
+    ) {
+    }
 }

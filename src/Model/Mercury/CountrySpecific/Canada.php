@@ -11,7 +11,9 @@ readonly class Canada
     public function __construct(
         public string $bankCode,
         public string $transitNumber
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(

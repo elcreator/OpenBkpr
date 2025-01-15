@@ -16,7 +16,9 @@ readonly class InternationalWireRoutingInfo
         public ?Address $address,
         public ?string $phoneNumber,
         public ?CountrySpecific $countrySpecific
-    ) {}
+    ) {
+    }
+
     public static function fromArray(array $data): self
     {
         return new self(
