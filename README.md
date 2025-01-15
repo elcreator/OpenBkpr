@@ -27,6 +27,24 @@ Copy env.sample to .env
 ```bin/ob.cmd```
 ### Linux
 ```bin/ob.sh```
+These scripts are just shortcuts for launching cli.php with PHP interpreter so further here ```cli.php -h``` means ```bin/ob.cmd -h``` or ```bin/ob.sh -h`` depending on your OS.
+
+Start with -h option giving you help:
+
+```
+php "C:\projects\openbkpr\bin\cli.php" -h 
+usage: cli.php <command> [<options>]
+
+COMMANDS
+  start          (or just run without any arguments) Starts execution assuming
+                 everything OK in .env file
+  paypal-token   Get PayPal token by providing Client Id (-i or --id) and Client
+                 Secret (-s or --secret)
+
+```
+
+Next command should be ob paypal-token -i YOUR_CLIENT_TOKEN -s YOUR_SECRET
+
 
 See output and adjust ```.env``` file if needed.
 
@@ -42,7 +60,7 @@ Delete sensitive info from ```.env``` file if you are not planning to use it aga
 
 The program is provided "as is" without any guarantees.
 
-Example output with default settings and connected Stripe and Mercury:
+Example output with default settings and connected Stripe, Mercury and PayPal:
 
 ```
 user@pc:~/openbkpr$ bin/ob.sh
