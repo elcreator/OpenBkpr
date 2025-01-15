@@ -27,7 +27,8 @@ Copy env.sample to .env
 ```bin/ob.cmd```
 ### Linux
 ```bin/ob.sh```
-These scripts are just shortcuts for launching cli.php with PHP interpreter so further here ```cli.php -h``` means ```bin/ob.cmd -h``` or ```bin/ob.sh -h`` depending on your OS.
+
+These scripts are just shortcuts for launching cli.php with PHP interpreter so further here in all docs ```cli.php -h``` means ```bin/ob.cmd -h``` or ```bin/ob.sh -h``` depending on your OS.
 
 Start with -h option giving you help:
 
@@ -43,10 +44,17 @@ COMMANDS
 
 ```
 
-Next command should be ob paypal-token -i YOUR_CLIENT_TOKEN -s YOUR_SECRET
-
-
+### All
+```cli.php```
 See output and adjust ```.env``` file if needed.
+
+### PayPal
+
+Business profile required. First command should be 
+
+```cli.php paypal-token -i YOUR_CLIENT_TOKEN -s YOUR_SECRET ```
+
+which gives you PAYPAL_TOKEN for pasting into your ```.env```. Also it shows you token expiration time after which this action should be repeated.
 
 ## Security warning
 
