@@ -3,7 +3,5 @@ declare(strict_types=1);
 /**
  * @author Artur Kyryliuk <mail@artur.work>
  */
-
-define('BASE_DIR', realpath(__DIR__ . '/..'));
-require_once BASE_DIR . '/vendor/autoload.php';
-(new \App\Cli())->run($argv);
+require_once realpath(__DIR__ . '/..') . '/vendor/autoload.php';
+(new \App\Cli())->run($argv ?? []);

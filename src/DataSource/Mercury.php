@@ -7,26 +7,25 @@ declare(strict_types=1);
 namespace App\DataSource;
 
 use App\Model;
+use App\Http\ClientInterface;
 
-class Mercury
+class Mercury extends AbstractDataSource
 {
     public const CONFIG_NAME = 'Mercury';
     const API_BASE_URL = 'https://api.mercury.com/api/v1/';
     private int $pageSize = 500;
-    private array $requestOptions = [
-        'headers' => [
-            'accept' => 'application/json',
-        ],
-    ];
-    private \Psr\Http\Client\ClientInterface $client;
 
-    public function __construct(string $token, $client = new \GuzzleHttp\Client())
+    public function __construct(string $token, ClientInterface $client = new \App\Http\Client())
     {
         $this->requestOptions['headers']['Authorization'] = "Bearer {$token}";
         $this->client = $client;
     }
 
-    public function listAccounts()
+    /**
+     * @return array<string, mixed>
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     */
+    public function listAccounts(): array
     {
         $response = $this->client->get(self::API_BASE_URL . 'accounts', $this->requestOptions);
         if ($response->getStatusCode() !== 200) {
@@ -40,17 +39,15 @@ class Mercury
     }
 
     /**
-     * @param \DateTimeImmutable $fromDate
-     * @param \DateTimeImmutable $toDate
      * @param string $accountId
      * @return \App\Model\Transaction[]
      */
-    public function getTransactions(\DateTimeImmutable $fromDate, \DateTimeImmutable $toDate, string $accountId)
+    public function getTransactions(Model\Period $period, string $accountId): array
     {
         $result = [];
         $page = 0;
         do {
-            $transactionsPage = $this->getTransactionsPage($fromDate, $toDate, $accountId, $page++);
+            $transactionsPage = $this->getTransactionsPage($period->fromDate, $period->toDate, $accountId, $page++);
             $result = array_merge(
                 $result,
                 array_map(fn($transaction) => Model\Mercury\Transaction::fromArray(
@@ -62,12 +59,20 @@ class Mercury
         return $result;
     }
 
+    /**
+     * @param \DateTimeImmutable $fromDate
+     * @param \DateTimeImmutable $toDate
+     * @param string $accountId
+     * @param int $page
+     * @return array<string, mixed>
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     */
     private function getTransactionsPage(
         \DateTimeImmutable $fromDate,
         \DateTimeImmutable $toDate,
         string $accountId,
         int $page
-    ) {
+    ): array {
         $offset = $page * $this->pageSize;
         $response = $this->client->get(
             self::API_BASE_URL . "account/{$accountId}/transactions?limit={$this->pageSize}"

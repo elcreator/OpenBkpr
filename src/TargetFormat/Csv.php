@@ -7,10 +7,11 @@ declare(strict_types=1);
 namespace App\TargetFormat;
 
 use App\Model;
+use App\Model\AccountInfo;
 
 class Csv extends AbstractTargetFormat
 {
-    private $extension = 'csv';
+    private string $extension = 'csv';
 
     public function __construct()
     {
@@ -18,11 +19,11 @@ class Csv extends AbstractTargetFormat
 
     /**
      * @param Model\Transaction[] $transactions
-     * @param Model\AccountInfo $accountInfo
+     * @param AccountInfo $accountInfo
      * @param Model\Period $period
      * @return false|string
      */
-    public function generateFromTransactions($transactions, $accountInfo, $period)
+    public function generateFromTransactions($transactions, AccountInfo $accountInfo, $period): false|string
     {
         // Open a temporary memory stream for writing CSV data
         $handle = fopen('php://temp', 'r+');

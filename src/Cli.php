@@ -11,9 +11,12 @@ use Garden\Cli\Application\CliApplication;
 
 class Cli extends CliApplication
 {
-    const OPT_REQUIRED_ALL = "requiredAll";
+    const OPT_REQUIRED_ALL = 'requiredAll';
 
-    public function run($argv)
+    /**
+     * @param array<int,string> $argv
+     */
+    public function run(array $argv = []): int
     {
         return $this->main(count($argv) === 1 ? array_merge($argv, ['start']) : $argv);
     }
@@ -22,7 +25,7 @@ class Cli extends CliApplication
      * Override until https://github.com/vanilla/garden-cli/pull/48 will be merged
      * @param string $className
      * @param string $methodName
-     * @param array $options
+     * @param array<string, mixed> $options
      * @return $this
      * @throws \ReflectionException
      */
@@ -46,14 +49,15 @@ class Cli extends CliApplication
 
     /**
      * Customized addSetters until https://github.com/vanilla/garden-cli/pull/48 will be merged
-     * @param \ReflectionClass $class
+     * @param \ReflectionClass<object> $class
      * @param callable|null $filter
+     * @param array<string, mixed> $options
      * @return void
      */
     public function addSettersCustom(
         \ReflectionClass $class,
         callable $filter = null,
-        $options = [self::OPT_REQUIRED_ALL => false]
+        array $options = [self::OPT_REQUIRED_ALL => false]
     ): void {
         foreach (
             $this->reflectSetters($class, $filter)

@@ -8,5 +8,5 @@ namespace App\Command;
 
 interface CommandInterface
 {
-    public function run();
+    public function run(): void;
 }

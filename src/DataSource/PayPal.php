@@ -7,26 +7,28 @@ declare(strict_types=1);
 namespace App\DataSource;
 
 use App\Model;
+use App\Http\ClientInterface;
 
-class PayPal
+class PayPal extends AbstractDataSource
 {
     public const CONFIG_NAME = 'PayPal';
     const API_BASE_URL = 'https://api-m.paypal.com/v1/';
     private int $pageSize = 10;
-    private array $requestOptions = [
-        'headers' => [
-            'accept' => 'application/json',
-        ],
-    ];
-    private \Psr\Http\Client\ClientInterface $client;
 
-    public function __construct(string $token, $client = new \GuzzleHttp\Client())
+    public function __construct(string $token, ClientInterface $client = new \App\Http\Client())
     {
         $this->requestOptions['headers']['Authorization'] = "Bearer {$token}";
         $this->client = $client;
     }
 
-    public static function login($clientId, $secret, $client = new \GuzzleHttp\Client())
+    /**
+     * @param string $clientId
+     * @param string $secret
+     * @param ClientInterface $client
+     * @return mixed
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     */
+    public static function login(string $clientId, string $secret, ClientInterface $client = new \App\Http\Client())
     {
         $response = $client->post(
             self::API_BASE_URL .
@@ -45,9 +47,9 @@ class PayPal
     /**
      * @param Model\Period $period
      * @return \App\Model\Transaction[]
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Psr\Http\Client\ClientExceptionInterface
      */
-    public function getTransactions(Model\Period $period)
+    public function getTransactions(Model\Period $period): array
     {
         $result = [];
         $from = $period->fromDate;
@@ -76,14 +78,14 @@ class PayPal
      * @param \DateTimeImmutable $fromDate
      * @param \DateTimeImmutable $toDate
      * @param int $page
-     * @return mixed
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @return array<string, mixed>
+     * @throws \Psr\Http\Client\ClientExceptionInterface
      */
     private function getTransactionsPage(
         \DateTimeImmutable $fromDate,
         \DateTimeImmutable $toDate,
         int $page
-    ) {
+    ): array {
         $startDate = $fromDate->format('Y-m-d\TH:i:s\.v\Z');
         $endDate = $toDate->format('Y-m-d\TH:i:s\.v\Z');
         $response = $this->client->get(

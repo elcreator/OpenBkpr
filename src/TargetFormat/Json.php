@@ -7,10 +7,11 @@ declare(strict_types=1);
 namespace App\TargetFormat;
 
 use App\Model;
+use App\Model\AccountInfo;
 
 class Json extends AbstractTargetFormat
 {
-    private $extension = 'json';
+    private string $extension = 'json';
 
     public function __construct()
     {
@@ -18,11 +19,11 @@ class Json extends AbstractTargetFormat
 
     /**
      * @param Model\Transaction[] $transactions
-     * @param Model\AccountInfo $accountInfo
+     * @param AccountInfo $accountInfo
      * @param Model\Period $period
      * @return false|string
      */
-    public function generateFromTransactions($transactions, $accountInfo, $period)
+    public function generateFromTransactions($transactions, AccountInfo $accountInfo, $period): false|string
     {
         return json_encode(['transactions' => $transactions, 'accountInfo' => $accountInfo, 'period' => $period]);
     }

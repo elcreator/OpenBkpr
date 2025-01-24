@@ -7,27 +7,26 @@ declare(strict_types=1);
 namespace App\DataSource;
 
 use App\Model;
+use App\Http\ClientInterface;
 
-class Stripe
+class Stripe extends AbstractDataSource
 {
     public const CONFIG_NAME = 'Stripe';
     const API_BASE_URL = 'https://api.stripe.com/v1/';
-    private int $pageSize = 5;
+    private int $pageSize = 50;
     private ?string $lastId = null;
-    private array $requestOptions = [
-        'headers' => [
-            'accept' => 'application/json',
-        ],
-    ];
-    private \Psr\Http\Client\ClientInterface $client;
 
-    public function __construct(string $token, $client = new \GuzzleHttp\Client())
+    public function __construct(string $token, ClientInterface $client = new \App\Http\Client())
     {
         $this->requestOptions['headers']['Authorization'] = "Bearer {$token}";
         $this->client = $client;
     }
 
-    public function listAccounts()
+    /**
+     * @return array<string, mixed>
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     */
+    public function listAccounts(): array
     {
         $response = $this->client->get(self::API_BASE_URL . 'financial_connections/accounts', $this->requestOptions);
         if ($response->getStatusCode() !== 200) {
@@ -43,9 +42,9 @@ class Stripe
     /**
      * @param Model\Period $period
      * @return \App\Model\Transaction[]
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Psr\Http\Client\ClientExceptionInterface
      */
-    public function getTransactions(Model\Period $period)
+    public function getTransactions(Model\Period $period): array
     {
         $result = [];
         do {
@@ -63,10 +62,10 @@ class Stripe
 
     /**
      * https://docs.stripe.com/api/balance_transactions/list
-     * @return mixed
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @return array<string, mixed>
+     * @throws \Psr\Http\Client\ClientExceptionInterface
      */
-    private function getTransactionsPage()
+    private function getTransactionsPage(): array
     {
         $response = $this->client->get(
             self::API_BASE_URL . "balance_transactions?limit={$this->pageSize}"

@@ -14,17 +14,17 @@ class PaypalToken implements CommandInterface
     private string $id;
     private string $secret;
 
-    public function setId($id): void
+    public function setId(string $id): void
     {
         $this->id = $id;
     }
 
-    public function setSecret($secret): void
+    public function setSecret(string $secret): void
     {
         $this->secret = $secret;
     }
 
-    public function run()
+    public function run(): void
     {
         $login = \App\DataSource\PayPal::login($this->id, $this->secret);
         $date = new \DateTime();
@@ -33,5 +33,4 @@ class PaypalToken implements CommandInterface
         echo ', expires ' . $date->format('Y-m-d H:i:s') . PHP_EOL;
         echo 'PAYPAL_TOKEN=' . $login['access_token'] . PHP_EOL;
     }
-
 }

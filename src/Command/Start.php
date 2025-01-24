@@ -16,7 +16,7 @@ use App\TargetFormat;
  */
 class Start implements CommandInterface
 {
-        private const ALL_FORMATS = [
+    private const ALL_FORMATS = [
         'CAMT54' => TargetFormat\Camt054_1_04::class,
         'CSV' => TargetFormat\Csv::class,
         'JSON' => TargetFormat\Json::class,
@@ -26,14 +26,15 @@ class Start implements CommandInterface
         DataSource\Stripe::CONFIG_NAME,
         DataSource\PayPal::CONFIG_NAME,
     ];
-private $defaultFromDate = '-2 months';
-    private $defaultToDate = 'now';
-    private $defaultCurrency = 'USD';
+    private string $defaultFromDate = '-2 months';
+    private string $defaultToDate = 'now';
+    private string $defaultCurrency = 'USD';
+    private string $env;
 
-    public function run()
+    public function run(): void
     {
         try {
-            $dotenv = \Dotenv\Dotenv::createImmutable(BASE_DIR);
+            $dotenv = \Dotenv\Dotenv::createImmutable($this->env ?? realpath(__DIR__ . '/../..'));
             $dotenv->load();
 
             if (!isset($_ENV['COMPANY_NAME'])) {
@@ -76,7 +77,6 @@ private $defaultFromDate = '-2 months';
                 }
 
                 foreach ($formats as $format) {
-                    /** @var TargetFormat\AbstractTargetFormat $generator */
                     $generator = new (self::ALL_FORMATS[$format])();
                     $output = $generator->generateFromTransactions($transactions, $accountInfo, $period);
                     if (!$output) {
@@ -100,10 +100,20 @@ private $defaultFromDate = '-2 months';
             }
         } catch (\Exception $e) {
             $this->outError($e->getMessage());
-            exit ($e->getCode() ?? -1);
+            exit ($e->getCode() ?: -1);
         }
     }
 
+    public function setEnv(string $env): void
+    {
+         $this->env = $env;
+    }
+
+    /**
+     * @param string $envKey
+     * @param string[] $allValues
+     * @return string[]
+     */
     private function getConfigArray(string $envKey, array $allValues): array
     {
         if (!isset($_ENV[$envKey])) {
@@ -125,12 +135,12 @@ private $defaultFromDate = '-2 months';
         return $result;
     }
 
-    private function outError($text)
+    private function outError(string $text): void
     {
         fwrite(STDERR, $text . PHP_EOL);
     }
 
-    private function getPeriod($source)
+    private function getPeriod(string $source): Model\Period
     {
         $sourcePrefix = strtoupper($source) . '_';
         return new Model\Period(
@@ -139,7 +149,7 @@ private $defaultFromDate = '-2 months';
         );
     }
 
-    private function getMercuryAccountInfo()
+    private function getMercuryAccountInfo(): Model\AccountInfo
     {
         return new Model\AccountInfo(
             $_ENV['MERCURY_ACCOUNT_ID'],
@@ -149,7 +159,12 @@ private $defaultFromDate = '-2 months';
         );
     }
 
-    public function getMercuryTransactions($period, $accountInfo)
+    /**
+     * @param Model\Period $period
+     * @param Model\AccountInfo $accountInfo
+     * @return Model\Transaction[]
+     */
+    public function getMercuryTransactions(Model\Period $period, Model\AccountInfo $accountInfo): array
     {
         $dataSource = new Mercury($this->sourceToken(DataSource\Mercury::CONFIG_NAME));
 
@@ -170,10 +185,14 @@ private $defaultFromDate = '-2 months';
             );
         }
 
-        return $dataSource->getTransactions($period->fromDate, $period->toDate, $accountInfo->accountId);
+        return $dataSource->getTransactions($period, $accountInfo->accountId);
     }
 
-    private function sourceToken($source)
+    /**
+     * @param string $source
+     * @return string
+     */
+    private function sourceToken(string $source): string
     {
         $key = strtoupper($source) . '_TOKEN';
         if (!isset($_ENV[$key])) {
@@ -182,7 +201,12 @@ private $defaultFromDate = '-2 months';
         return $_ENV[$key];
     }
 
-    public function getStripeTransactions($period)
+    /**
+     * @param Model\Period $period
+     * @return Model\Transaction[]
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     */
+    public function getStripeTransactions(Model\Period $period): array
     {
         $stripe = new DataSource\Stripe($this->sourceToken(DataSource\Stripe::CONFIG_NAME));
 
@@ -195,7 +219,12 @@ private $defaultFromDate = '-2 months';
         return $stripe->getTransactions($period);
     }
 
-    public function getPayPalTransactions(Model\Period $period)
+    /**
+     * @param Model\Period $period
+     * @return Model\Transaction[]
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     */
+    public function getPayPalTransactions(Model\Period $period): array
     {
         $payPal = new DataSource\PayPal($this->sourceToken(DataSource\PayPal::CONFIG_NAME));
 
@@ -208,7 +237,7 @@ private $defaultFromDate = '-2 months';
         return $payPal->getTransactions($period);
     }
 
-    private function outputToFile($xml, $filename)
+    private function outputToFile(string $xml, string $filename): void
     {
         if (touch($filename) && is_writable($filename)) {
             file_put_contents($filename, $xml);
@@ -218,7 +247,7 @@ private $defaultFromDate = '-2 months';
         }
     }
 
-    private function outputFileName(Model\Period $period, $source, $extension, $template)
+    private function outputFileName(Model\Period $period, string $source, string $extension, string $template): string
     {
         return str_replace(
             ['{source}', '{period}', '{extension}'],
