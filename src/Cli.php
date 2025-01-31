@@ -14,7 +14,7 @@ class Cli extends CliApplication
     const OPT_REQUIRED_ALL = 'requiredAll';
 
     /**
-     * @param array<int,string> $argv
+     * @param array<int, string> $argv
      */
     public function run(array $argv = []): int
     {
@@ -89,8 +89,10 @@ class Cli extends CliApplication
     protected function configureCli(): void
     {
         parent::configureCli();
-        $this->addConstructor(\Garden\Cli\StreamLogger::class, [STDERR]);
+        $this->getContainer()->rule(\Garden\Cli\StreamLogger::class)->setConstructorArgs([STDERR])
+            ->addCall('setTimeFormat', ['Y-m-d H:i:s']);
         $this->getContainer()->setShared(true);
+        $this->getContainer()->rule(\Psr\Log\LoggerInterface::class)->setAliasOf(\Garden\Cli\StreamLogger::class);
         $this->addCommandClass(\App\Command\Start::class);
         $this->addCommandClass(
             \App\Command\PaypalToken::class,
