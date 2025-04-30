@@ -23,7 +23,7 @@ class Csv extends AbstractTargetFormat
      * @param Model\Period $period
      * @return false|string
      */
-    public function generateFromTransactions($transactions, AccountInfo $accountInfo, $period): false|string
+    public function generateFromTransactions($transactions, AccountInfo $accountInfo, Model\Period $period): false|string
     {
         // Open a temporary memory stream for writing CSV data
         $handle = fopen('php://temp', 'r+');

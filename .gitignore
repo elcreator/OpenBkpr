@@ -5,3 +5,4 @@
 !composer.json
 !tests/assets/*.xml
 *.csv
+/vendor/bin/.phpunit.result.cache

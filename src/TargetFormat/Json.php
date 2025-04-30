@@ -23,7 +23,7 @@ class Json extends AbstractTargetFormat
      * @param Model\Period $period
      * @return false|string
      */
-    public function generateFromTransactions($transactions, AccountInfo $accountInfo, $period): false|string
+    public function generateFromTransactions($transactions, AccountInfo $accountInfo, Model\Period $period): false|string
     {
         return json_encode(['transactions' => $transactions, 'accountInfo' => $accountInfo, 'period' => $period]);
     }

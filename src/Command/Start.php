@@ -16,11 +16,6 @@ use App\TargetFormat;
  */
 class Start implements CommandInterface
 {
-    private const ALL_FORMATS = [
-        'CAMT54' => TargetFormat\Camt054_1_04::class,
-        'CSV' => TargetFormat\Csv::class,
-        'JSON' => TargetFormat\Json::class,
-    ]; // to cover at least one full statement which usually covers previous month
     private const ALL_SOURCES = [
         DataSource\Mercury::CONFIG_NAME,
         DataSource\Stripe::CONFIG_NAME,
@@ -31,6 +26,16 @@ class Start implements CommandInterface
     private string $defaultCurrency = 'USD';
     private string $env;
 
+    private DataSource\Factory $dataSourceFactory;
+    private TargetFormat\Factory $targetFormatFactory;
+
+    public function __construct(?DataSource\Factory $dataSourceFactory = null,
+        ?TargetFormat\Factory $targetFormatFactory = null)
+    {
+        $this->dataSourceFactory = $dataSourceFactory ?? new DataSource\Factory();
+        $this->targetFormatFactory = $targetFormatFactory ?? new TargetFormat\Factory();
+    }
+
     public function run(): void
     {
         try {
@@ -38,13 +43,13 @@ class Start implements CommandInterface
             $dotenv->load();
 
             if (!isset($_ENV['COMPANY_NAME'])) {
-                echo "COMPANY_NAME is not defined in .env, please setup\n";
+                $this->echoLine('COMPANY_NAME is not defined in .env, please setup');
             }
 
             if (!isset($_ENV['SOURCES'])) {
-                echo "SOURCES is not defined in .env, please setup\n";
+                $this->echoLine('SOURCES is not defined in .env, please setup');
             }
-            $formats = $this->getConfigArray('OUTPUT_FORMATS', array_keys(self::ALL_FORMATS));
+            $formats = $this->getConfigArray('OUTPUT_FORMATS', array_keys(TargetFormat\Factory::ALL_FORMATS));
             array_walk($formats, fn(&$value) => strtoupper($value));
             $sources = $this->getConfigArray('SOURCES', self::ALL_SOURCES);
 
@@ -77,7 +82,7 @@ class Start implements CommandInterface
                 }
 
                 foreach ($formats as $format) {
-                    $generator = new (self::ALL_FORMATS[$format])();
+                    $generator = $this->targetFormatFactory->create($format);
                     $output = $generator->generateFromTransactions($transactions, $accountInfo, $period);
                     if (!$output) {
                         $this->outError("Nothing was generated for $source!");
@@ -99,8 +104,7 @@ class Start implements CommandInterface
                 }
             }
         } catch (\Exception $e) {
-            $this->outError($e->getMessage());
-            exit ($e->getCode() ?: -1);
+            $this->outError($e->getMessage(), $e->getCode() ?: -1);
         }
     }
 
@@ -135,9 +139,16 @@ class Start implements CommandInterface
         return $result;
     }
 
-    private function outError(string $text): void
+    protected function outError(string $text, int|null $exitCode = null): void
     {
         fwrite(STDERR, $text . PHP_EOL);
+        if (!is_null($exitCode)) {
+            exit($exitCode);
+        }
+    }
+
+    protected function echoLine($what) {
+        echo "$what\n";
     }
 
     private function getPeriod(string $source): Model\Period
@@ -149,7 +160,7 @@ class Start implements CommandInterface
         );
     }
 
-    private function getMercuryAccountInfo(): Model\AccountInfo
+    protected function getMercuryAccountInfo(): Model\AccountInfo
     {
         return new Model\AccountInfo(
             $_ENV['MERCURY_ACCOUNT_ID'],
@@ -166,18 +177,17 @@ class Start implements CommandInterface
      */
     public function getMercuryTransactions(Model\Period $period, Model\AccountInfo $accountInfo): array
     {
-        $dataSource = new Mercury($this->sourceToken(DataSource\Mercury::CONFIG_NAME));
+        $dataSource = $this->dataSourceFactory->createMercury();
 
         if (!isset($_ENV['MERCURY_ACCOUNT_ID']) || !isset($_ENV['MERCURY_ACCOUNT_NUMBER'])) {
             $accounts = $dataSource->listAccounts();
             foreach ($accounts as $account) {
-                echo "#MERCURY_ACCOUNT_NAME=\"{$account->name}\"\n";
-                echo "MERCURY_ACCOUNT_ID={$account->id}\n";
-                echo "MERCURY_ACCOUNT_NUMBER={$account->accountNumber}\n";
+                $this->echoLine("#MERCURY_ACCOUNT_NAME=\"{$account->name}\"");
+                $this->echoLine("MERCURY_ACCOUNT_ID={$account->id}");
+                $this->echoLine("MERCURY_ACCOUNT_NUMBER={$account->accountNumber}");
                 if (!isset($_ENV['COMPANY_NAME'])) {
-                    echo "COMPANY_NAME=\"{$account->legalBusinessName}\"\n";
+                    $this->echoLine("COMPANY_NAME=\"{$account->legalBusinessName}\"");
                 }
-                echo "\n";
             }
             throw new \UnderflowException(
                 "MERCURY_ACCOUNT_ID or MERCURY_ACCOUNT_NUMBER is not found, "
@@ -189,26 +199,13 @@ class Start implements CommandInterface
     }
 
     /**
-     * @param string $source
-     * @return string
-     */
-    private function sourceToken(string $source): string
-    {
-        $key = strtoupper($source) . '_TOKEN';
-        if (!isset($_ENV[$key])) {
-            throw new \UnderflowException("$key is not defined in .env");
-        }
-        return $_ENV[$key];
-    }
-
-    /**
      * @param Model\Period $period
      * @return Model\Transaction[]
      * @throws \Psr\Http\Client\ClientExceptionInterface
      */
     public function getStripeTransactions(Model\Period $period): array
     {
-        $stripe = new DataSource\Stripe($this->sourceToken(DataSource\Stripe::CONFIG_NAME));
+        $stripe = $this->dataSourceFactory->createStripe();
 
         if (!isset($_ENV['STRIPE_ACCOUNT_NUMBER'])) {
             throw new \UnderflowException(
@@ -226,7 +223,7 @@ class Start implements CommandInterface
      */
     public function getPayPalTransactions(Model\Period $period): array
     {
-        $payPal = new DataSource\PayPal($this->sourceToken(DataSource\PayPal::CONFIG_NAME));
+        $payPal = $this->dataSourceFactory->createPayPal();
 
         if (!isset($_ENV['PAYPAL_ACCOUNT_NUMBER'])) {
             throw new \UnderflowException(
