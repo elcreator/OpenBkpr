@@ -24,7 +24,9 @@ use DateTimeImmutable;
 class StartTest extends TestCase
 {
     private Start $command;
+    /** @var array{'code': int, 'text': string}[] */
     private array $outErrorCalls = [];
+    /** @var string[] */
     private array $echoLineCalls = [];
     private string $originalTimezone;
     private MockObject $mercuryDataSource;
@@ -738,7 +740,7 @@ class StartTest extends TestCase
         $this->assertEquals('output_test_source_2023-01-01-2023-01-31.test_extension', $result);
     }
 
-    private function getStubPeriod()
+    private function getStubPeriod(): Period
     {
         return new Period(
             new DateTimeImmutable('2009-11-28', new \DateTimeZone('Europe/Berlin')),
@@ -746,12 +748,16 @@ class StartTest extends TestCase
         );
     }
 
-    private function getStubAccountInfo($id = 'test-acc-id', $number = "123456", $owner = 'test owner', $currency = 'XXX')
+    private function getStubAccountInfo(string $id = 'test-acc-id', string $number = '123456',
+        string $owner = 'test owner', string $currency = 'XXX'): AccountInfo
     {
         return new AccountInfo($id, $number, $owner, $currency);
     }
 
-    private function getStubTransactions()
+    /**
+     * @return Transaction[]
+     */
+    private function getStubTransactions(): array
     {
         return [
             new Transaction(

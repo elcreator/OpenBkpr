@@ -147,7 +147,7 @@ class Start implements CommandInterface
         }
     }
 
-    protected function echoLine($what) {
+    protected function echoLine(string $what): void {
         echo "$what\n";
     }
 

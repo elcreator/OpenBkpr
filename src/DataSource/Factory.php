@@ -4,17 +4,17 @@ namespace App\DataSource;
 
 class Factory
 {
-    public function createMercury()
+    public function createMercury(): Mercury
     {
         return new Mercury($this->sourceToken(Mercury::CONFIG_NAME));
     }
 
-    public function createPayPal()
+    public function createPayPal(): PayPal
     {
         return new PayPal($this->sourceToken(PayPal::CONFIG_NAME));
     }
 
-    public function createStripe()
+    public function createStripe(): Stripe
     {
         return new Stripe($this->sourceToken(Stripe::CONFIG_NAME));
     }
